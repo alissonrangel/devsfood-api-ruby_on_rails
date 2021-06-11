@@ -4,7 +4,7 @@ Rails.application.routes.draw do
   post 'login', to: "users#login"
   get 'me', to: "users#me"
   get 'categories', to:"categories#list"
-  get 'products', to:"products#index"
+  get 'products', to:"products#list"
 
   post 'product/add', to: 'products#create'
   # get 'booking_times', to: "booking#booking_times"

@@ -5,7 +5,10 @@ class ProductsController < AuthorizationController
       error: "",
       result: []      
     }
-    @data = Product.all.order(:id).map do |prod|
+    # @products = Product.all.with_attached_featured_image
+
+    @data = Product.all.with_attached_featured_image.order(:id).map do |prod|
+      if prod.image != "null"
       {
         id: prod.id,
         id_cat: prod.category_id,
@@ -14,8 +17,20 @@ class ProductsController < AuthorizationController
         ingredients: prod.ingredients,
         points: prod.points,
         price: prod.price,
-        featured_image: prod.featured_image        
+        featured_image: nil
       }
+      else
+      {
+        id: prod.id,
+        id_cat: prod.category_id,
+        image: prod.image,
+        name: prod.name,
+        ingredients: prod.ingredients,
+        points: prod.points,
+        price: prod.price,
+        featured_image: url_for(prod.featured_image)
+      }
+      end
     end  
     puts "DATA 4"  
     puts @data[4]
@@ -24,6 +39,26 @@ class ProductsController < AuthorizationController
 
     render json: @products
   end
+
+  # def list2
+  #   @products = Product.all.with_attached_featured_image
+
+  #   @products.map do |prod|
+  #     { 
+  #       id: prod.id,
+  #       id_cat: prod.category_id,
+  #       image: url_for(prod.featured_image), 
+  #       name: prod.name,
+  #       ingredients: prod.ingredients,
+  #       points: prod.points,
+  #       price: prod.price,
+  #       url: "dadad"
+  #     }
+  #   end
+  #   render json: @products
+  #   #render json: @products.to_json(include: { featured_image_attachment: { include: :blob } })
+    
+  # end
 
   def index
     puts "AQUIFADADD"
@@ -37,14 +72,15 @@ class ProductsController < AuthorizationController
       substring = params[:search]
       substring = substring.downcase
       @data = Product.where(["lower(name) like ?","%#{substring}%"])
-    else
-      @data = Product.all
     end
+      
     if params[:category] != nil 
       #puts params[:search]
       category = params[:category]      
       @data = Product.where(["category_id = ?","#{category}"])
-    else
+    end
+    
+    if @data == nil
       @data = Product.all
     end
     
@@ -56,7 +92,7 @@ class ProductsController < AuthorizationController
 
   def create
       @product = Product.create(post_params)
-    if @product.persisted?      
+    if @product.persisted?
       render json: {                
         id: @product.id
       }
